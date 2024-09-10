@@ -1,6 +1,8 @@
 package message;
 
+
 import java.io.Serializable;
+
 
 /**
  * Class [Message] Defines a generic Message that has a message type and content.
