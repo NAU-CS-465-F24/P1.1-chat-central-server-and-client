@@ -32,34 +32,34 @@ public class ChatServer implements Runnable {
         }
     }
 
-        @Override
-        public void run() {
-            try {
-                serverSocket = new ServerSocket(port);
-                System.out.println("ChatServer listening on " + NetworkUtilities.getMyIP() + ":" + port);
-            } catch (IOException e) {
-                System.err.println("Cannot open server socket");
-                System.exit(1);
-            }
+    public static void main(String[] args) {
+        String propertiesFile = null;
 
-            while (true) {
-                try {
-                    (new ChatServerWorker(serverSocket.accept())).start();
-                } catch (IOException e) {
-                    System.out.println("[ChatServer].run Warning: Error accepting client");
-                }
-            }
+        try {
+            propertiesFile = args[0];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            propertiesFile = "config/server.properties";
         }
 
-        public static void main(String[] args) {
-            String propertiesFile = null;
+        (new ChatServer(propertiesFile)).run();
+    }
 
+    @Override
+    public void run() {
+        try {
+            serverSocket = new ServerSocket(port);
+            System.out.println("ChatServer listening on " + NetworkUtilities.getMyIP() + ":" + port);
+        } catch (IOException e) {
+            System.err.println("Cannot open server socket");
+            System.exit(1);
+        }
+
+        while (true) {
             try {
-                propertiesFile = args[0];
-            } catch (ArrayIndexOutOfBoundsException e) {
-                propertiesFile = "config/server.properties";
+                (new ChatServerWorker(serverSocket.accept())).start();
+            } catch (IOException e) {
+                System.out.println("[ChatServer].run Warning: Error accepting client");
             }
-
-            (new ChatServer(propertiesFile)).run();
         }
     }
+}

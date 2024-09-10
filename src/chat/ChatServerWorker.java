@@ -22,7 +22,7 @@ public class ChatServerWorker extends Thread implements MessageTypes {
     public void run() {
         NodeInfo participantInfo = null;
 
-        Iterator <NodeInfo> participantsIterator;
+        Iterator<NodeInfo> participantsIterator;
 
         try {
             writeToNet = new ObjectOutputStream(chatConnection.getOutputStream());
