@@ -1,211 +1,165 @@
-/** 
- *Chat Client Class
-
- reads configuration information and starts up the ChatClient
-
- @author wolfdieterotte
+/**
+ * Chat Client Class
+ * <p>
+ * reads configuration information and starts up the ChatClient
+ *
+ * @author wolfdieterotte
  */
 
- package chat;
+package chat;
 
- import java.io.*;
- import java.net.*;
- import java.util.*;
- 
- import utils.*;
- import message.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
- public class Sender extends Thread implements MessageTypes
- {
+import utils.*;
+import message.*;
+
+public class Sender extends Thread implements MessageTypes {
     Socket serverConnection = null;
     Scanner userInput = new Scanner(System.in);
     String inputLine = null;
-    Boolean hasJoined; 
+    boolean hasJoined;
 
     //constructor
-    public Sender()
-    {
+    public Sender() {
         userInput = new Scanner(System.in);
         hasJoined = false;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         ObjectOutputStream writeToNet;
         ObjectInputStream readFromNet;
 
-        while (true)
-        {
+        while (true) {
             inputLine = userInput.nextLine();
 
-            if (inputLine.startsWith("JOIN"))
-            {
-
-                if (hasJoined == true)
-                {
+            if (inputLine.startsWith("JOIN")) {
+                if (hasJoined == true) {
                     System.err.println("You have already joined a chat...");
                     continue;
                 }
 
-                String[] connectivityInfo = inputLine.split("[]+");
+                String[] connectivityInfo = inputLine.split("[ ]+");
 
-            
-                try
-                {
+                try {
                     ChatClient.serverNodeInfo = new NodeInfo(connectivityInfo[1], Integer.parseInt(connectivityInfo[2]));
-                }
-                catch (ArrayIndexOutOfBoundsException ex)
-                {
-                    continue;
-
+                } catch (ArrayIndexOutOfBoundsException ex) {
                 }
 
-                if (ChatClient.serverNodeInfo == null)
-                {
+                if (ChatClient.serverNodeInfo == null) {
                     System.err.println("[Sender].run no server connectivity information provided!");
                     continue;
                 }
-                try
-                {
-                    serverConnection = new Socket(ChatClient.serverNodeInfo.getAddress(), ChatClient.ServerNodeInfo.getPort());
 
-                    readFromNet = new ObjectINputStream(serverConnection.getInputStream());
+                try {
+                    serverConnection = new Socket(ChatClient.serverNodeInfo.getAddress(), ChatClient.serverNodeInfo.getPort());
+
+                    readFromNet = new ObjectInputStream(serverConnection.getInputStream());
                     writeToNet = new ObjectOutputStream(serverConnection.getOutputStream());
 
-                    writeToNet.writeObject(new Meassage(LEAVE, ChatClient.myNodeInfo));
+                    writeToNet.writeObject(new Message(JOIN, ChatClient.myNodeInfo));
 
                     serverConnection.close();
-                }
-                catch(IOException ex)
-                {
+                } catch (IOException ex) {
+                    System.err.println("Error connecting to server.");
                     continue;
-
                 }
 
                 hasJoined = true;
-
                 System.out.println("Joined chat ...");
-            }
 
-            else if (inputLine.startsWith("LEAVE"))
-            {
-                if (hasJoined == false)
-                {
+            } else if (inputLine.startsWith("LEAVE")) {
+                if (hasJoined == false) {
                     System.err.println("You have not joined a chat yet...");
                     continue;
                 }
 
-                try
-                {
+                try {
                     serverConnection = new Socket(ChatClient.serverNodeInfo.getAddress(), ChatClient.serverNodeInfo.getPort());
-                    readFromNet = new ObjectINputStream(serverConnection.getInputStream());
+
+                    readFromNet = new ObjectInputStream(serverConnection.getInputStream());
                     writeToNet = new ObjectOutputStream(serverConnection.getOutputStream());
 
-                    writeToNet.writeObject(new Meassage(JOIN, ChatClient.myNodeInfo));
+                    writeToNet.writeObject(new Message(LEAVE, ChatClient.myNodeInfo));
 
                     serverConnection.close();
-                }
-                catch(IOException ex)
-                {
-
+                } catch (IOException ex) {
+                    System.err.println("Error connecting to the server or closing the connection.");
                     continue;
-
                 }
 
                 hasJoined = false;
 
                 System.out.println("Left chat ...");
- 
-            }
 
-            else if (inputLine.startsWith("SHUTDOWN ALL"))
-            {
-                if (hasJoined == false)
-                {
-                    System.err.println("to shut down the chat you must join")
+            } else if (inputLine.startsWith("SHUTDOWN ALL")) {
+                if (hasJoined == false) {
+                    System.err.println("To shut down the whole chat, you need to first join it...");
                     continue;
                 }
 
-                try
-                {
-                    serverConnection = new Socket(ChatClient.ServerNodeInfo.getAddress(), ChatClient. serverNodeInfo.getPort());
-                    readFromNet = new ObjectINputStream(serverConnection.getInputStream());
+                try {
+                    serverConnection = new Socket(ChatClient.serverNodeInfo.getAddress(), ChatClient.serverNodeInfo.getPort());
+
+                    readFromNet = new ObjectInputStream(serverConnection.getInputStream());
                     writeToNet = new ObjectOutputStream(serverConnection.getOutputStream());
 
-                    writeToNet.writeObject(new Meassage(SHUTDOWN_ALL, ChatClient.myNodeInfo));
+                    writeToNet.writeObject(new Message(SHUTDOWN_ALL, ChatClient.myNodeInfo));
 
                     serverConnection.close();
-
-                }
-                catch(IOException ex)
-                {
-                    
-
-
+                } catch (IOException ex) {
+                    System.err.println("Error opening the connection or writing the object.");
                 }
 
                 System.out.println("Sent shutdown all request...\n");
-            }
-            else if (inputLine.startsWith("SHUTDOWN"))
-            {
-                if (hasJoined == true)
-                {
-                    serverConnection = new Socket(ChatClient.ServerNodeInfo.getAddress(), ChatClient. serverNodeInfo.getPort());
-                    readFromNet = new ObjectINputStream(serverConnection.getInputStream());
-                    writeToNet = new ObjectOutputStream(serverConnection.getOutputStream());
 
-                    writeToNet.writeObject(new Meassage(SHUTDOWN_ALL, ChatClient.myNodeInfo));
+            } else if (inputLine.startsWith("SHUTDOWN")) {
+                if (hasJoined == true) {
+                    try {
+                        serverConnection = new Socket(ChatClient.serverNodeInfo.getAddress(), ChatClient.serverNodeInfo.getPort());
 
-                    serverConnection.close();
+                        readFromNet = new ObjectInputStream(serverConnection.getInputStream());
+                        writeToNet = new ObjectOutputStream(serverConnection.getOutputStream());
 
-                    System.out.println("Left chat...");
-                }
-                catch(IOException ex)
-                {
+                        writeToNet.writeObject(new Message(SHUTDOWN, ChatClient.myNodeInfo));
 
+                        serverConnection.close();
+
+                        System.out.println("Left chat...");
+                    } catch (IOException ex) {
+                        System.err.println("Error opening the connection ");
+                    }
                 }
 
                 System.out.println("Exiting...\n");
                 System.exit(0);
 
-            }
+            } else {
 
-            else
-            {
-
-                if (hasJoined == false)
-                {
-                    System.err.println("you need to join the chat first")
+                if (hasJoined == false) {
+                    System.err.println("you need to join the chat first");
                     continue;
                 }
 
-                try
-                {
-                    serverConnection = new Socket(ChatClient.ServerNodeInfo.getAddress(), ChatClient. serverNodeInfo.getPort());
-                    readFromNet = new ObjectINputStream(serverConnection.getInputStream());
+                try {
+                    serverConnection = new Socket(ChatClient.serverNodeInfo.getAddress(), ChatClient.serverNodeInfo.getPort());
+
+                    readFromNet = new ObjectInputStream(serverConnection.getInputStream());
                     writeToNet = new ObjectOutputStream(serverConnection.getOutputStream());
 
-                    writeToNet.writeObject(new Meassage(NOTE, ChatClient.myNodeInfo.getName() + ": "+ inputLine));
+                    writeToNet.writeObject(new Message(NOTE, ChatClient.myNodeInfo.getName() + ": " + inputLine));
 
                     serverConnection.close();
 
-                    System.out.println("message sent...");
+                    System.out.println("Message sent...");
 
+                } catch (IOException ex) {
+                    System.out.println("Sending message failed!");
+                    continue;
                 }
-                catch(IOException ex)
-                {
-
-                    continue;                
-
-
-                }
-
-                System.out.println("Sent shutdown all request...\n");
-
             }
-
         }
-
-      }
- }
+    }
+}
