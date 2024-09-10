@@ -114,8 +114,8 @@ public class Sender extends Thread implements MessageTypes {
                 System.out.println("Left chat ...");
             }
 
-            // SHUTDOWN ALL
-            else if (inputLine.startsWith("SHUTDOWN ALL")) {
+            // SHUTDOWN_ALL
+            else if (inputLine.startsWith("SHUTDOWN_ALL")) {
                 // check client join status
                 if (hasJoined == false) {
                     System.err.println("To shut down the whole chat, you need to first join it...");
